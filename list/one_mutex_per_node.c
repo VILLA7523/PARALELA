@@ -176,7 +176,6 @@ int main() {
     pthread_t threads[MAX_THREAD]; 
 
     pthread_mutex_init(&head_p_mutex, NULL);
-
     GET_TIME(start);
     pthread_create(&threads[0], NULL, (void *(*)(void *))Insert, (void *)5);
     pthread_create(&threads[1], NULL, (void *(*)(void *))Insert, (void *)6);

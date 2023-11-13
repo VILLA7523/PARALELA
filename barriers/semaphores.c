@@ -12,25 +12,6 @@ int counter;
 sem_t barrier_sems[BARRIER_COUNT];
 sem_t count_sem;
 
-/*--------------------------------------------------------------------
- * Function:    Usage
- * Purpose:     Print command line for function and terminate
- * In arg:      prog_name
- */
-void Usage(char* prog_name) {
-
-   fprintf(stderr, "usage: %s <number of threads>\n", prog_name);
-   exit(0);
-}  /* Usage */
-
-
-/*-------------------------------------------------------------------
- * Function:    Thread_work
- * Purpose:     Run BARRIER_COUNT barriers
- * In arg:      rank
- * Global var:  thread_count, count, barrier_sems, count_sem
- * Return val:  Ignored
- */
 void *Thread_work(void* rank) {
     
 #  ifdef DEBUG
@@ -68,7 +49,7 @@ int main(int argc, char* argv[]) {
    pthread_t* thread_handles; 
    double start, finish;
 
-   thread_count = 100;
+   thread_count = 8;
 
    //reserva la memoria para thread_count hilos
    thread_handles = malloc (thread_count*sizeof(pthread_t));

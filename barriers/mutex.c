@@ -1,25 +1,3 @@
-/* File:  
- *    pth_busy_bar.c
- *
- * Purpose:
- *    Use busy wait barriers to synchronize threads.
- *
- * Input:
- *    none
- * Output:
- *    Time for BARRIER_COUNT barriers
- *
- * Compile:
- *    gcc -g -Wall -o pth_busy_bar pth_busy_bar.c -lpthread
- * Usage:
- *    ./pth_busy_bar <thread_count>
- *
- * Note:
- *    Compile flag DEBUG will print a message after each barrier    
- *
- * IPP:   Section 4.8.1 (p. 177)
- */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
@@ -31,8 +9,26 @@ int thread_count;
 int barrier_thread_counts[BARRIER_COUNT];
 pthread_mutex_t barrier_mutex;
 
-void Usage(char* prog_name);
-void *Thread_work(void* rank);
+void *Thread_work(void* rank) {
+#  ifdef DEBUG
+   long my_rank = *((long*) rank); 
+#  endif
+   int i;
+
+   for (i = 0; i < BARRIER_COUNT; i++) {
+      pthread_mutex_lock(&barrier_mutex);
+      barrier_thread_counts[i]++;
+      pthread_mutex_unlock(&barrier_mutex);
+      while (barrier_thread_counts[i] < thread_count);
+#     ifdef DEBUG
+      if (my_rank == 0) {
+         printf("All threads entered barrier %d\n", i);
+         fflush(stdout);
+      }
+#     endif
+   }
+   return NULL;
+}  
 
 /*--------------------------------------------------------------------*/
 int main(int argc, char* argv[]) {
@@ -40,7 +36,7 @@ int main(int argc, char* argv[]) {
    pthread_t* thread_handles; 
    double start, finish;
 
-   thread_count = 100;
+   thread_count = 8;
 
    thread_handles = malloc (thread_count*sizeof(pthread_t));
    for (i = 0; i < BARRIER_COUNT; i++)
@@ -63,32 +59,3 @@ int main(int argc, char* argv[]) {
    return 0;
 }  /* main */
 
-
-/*-------------------------------------------------------------------
- * Function:    Thread_work
- * Purpose:     Run BARRIER_COUNT barriers
- * In arg:      rank
- * Global var:  thread_count, barrier_thread_counts, barrier_mutex
- * Return val:  Ignored
- */
-void *Thread_work(void* rank) {
-#  ifdef DEBUG
-   long my_rank = *((long*) rank); 
-#  endif
-   int i;
-
-   for (i = 0; i < BARRIER_COUNT; i++) {
-      pthread_mutex_lock(&barrier_mutex);
-      barrier_thread_counts[i]++;
-      pthread_mutex_unlock(&barrier_mutex);
-      while (barrier_thread_counts[i] < thread_count);
-#     ifdef DEBUG
-      if (my_rank == 0) {
-         //printf("All threads entered barrier %d\n", i);
-         //fflush(stdout);
-      }
-#     endif
-   }
-
-   return NULL;
-}  /* Thread_work */

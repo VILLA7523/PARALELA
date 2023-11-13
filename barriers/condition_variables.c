@@ -11,14 +11,6 @@ int barrier_thread_count = 0;
 pthread_mutex_t barrier_mutex;
 pthread_cond_t ok_to_proceed;
 
-/*-------------------------------------------------------------------
- * Function:    Thread_work
- * Purpose:     Run BARRIER_COUNT barriers
- * In arg:      rank
- * Global var:  thread_count, barrier_thread_count, barrier_mutex,
- *              ok_to_proceed
- * Return val:  Ignored
- */
 void *Thread_work(void* rank) {
 #  ifdef DEBUG
    long my_rank = *((long*) rank); 
@@ -31,17 +23,13 @@ void *Thread_work(void* rank) {
       if (barrier_thread_count == thread_count) {
          barrier_thread_count = 0;
 #        ifdef DEBUG
-         printf("Thread %ld > Signalling other threads in barrier %d\n", 
-               my_rank, i);
+         printf("Thread %ld > Signalling other threads in barrier %d\n", my_rank, i);
          fflush(stdout);
 #        endif
          pthread_cond_broadcast(&ok_to_proceed);
       } else {
-         // Wait unlocks mutex and puts thread to sleep.
-         //    Put wait in while loop in case some other
-         // event awakens thread.
-         while (pthread_cond_wait(&ok_to_proceed,
-                   &barrier_mutex) != 0);
+         // Espera a que se desbloquee el mutex y coloca al hilo a dormir
+         while (pthread_cond_wait(&ok_to_proceed, &barrier_mutex) != 0);
          // Mutex is relocked at this point.
 #        ifdef DEBUG
          printf("Thread %ld > Awakened in barrier %d\n", my_rank, i);
@@ -67,7 +55,7 @@ int main(int argc, char* argv[]) {
    pthread_t* thread_handles; 
    double start, finish;
 
-   thread_count = 100;
+   thread_count = 1;
 
    thread_handles = malloc (thread_count*sizeof(pthread_t));
    pthread_mutex_init(&barrier_mutex, NULL);

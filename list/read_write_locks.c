@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include "timer.h"
 
-#define MAX_THREAD 10
+#define MAX_THREAD 5
 
 struct list_node {
     int data;
@@ -75,6 +75,7 @@ void sprint() {
         curr_p = curr_p->next;
     }
 }
+
 void* Insert(void * value) {
     int val = *((int * )value);
     pthread_t my_rank = pthread_self();
@@ -89,10 +90,10 @@ void* Member(void * value) {
     int val = *((int * )value);
     pthread_t my_rank = pthread_self();
     pthread_rwlock_rdlock(&rwlock);
-    printf("Hilo %d Bloquea insert\n" , my_rank);
+    printf("Hilo %d Bloquea member\n" , my_rank);
     insert(val);
     pthread_rwlock_unlock(&rwlock);
-    printf("Hilo %d Desbloquea insert\n" , my_rank);
+    printf("Hilo %d Desbloquea member\n" , my_rank);
 }
 
 
@@ -100,30 +101,26 @@ void* Delete(void * value) {
     int val = *((int * )value);
     pthread_t my_rank = pthread_self();
     pthread_rwlock_wrlock(&rwlock);
-    printf("Hilo %d Bloquea insert\n" , my_rank);
+    printf("Hilo %d Bloquea delete\n" , my_rank);
     insert(val);
     pthread_rwlock_unlock(&rwlock);
-    printf("Hilo %d Desbloquea insert\n" , my_rank);
+    printf("Hilo %d Desbloquea delete\n" , my_rank);
 }
 
 
 int main(){
     double start, finish;
     pthread_t threads[MAX_THREAD]; 
+    int arr[5] = {5,6,9,2,9};
 
-    if (pthread_rwlock_init(&rwlock, NULL) != 0) {
-        printf("Error initializing rwlock\n");
-        exit(EXIT_FAILURE);
-    }
-
+    pthread_rwlock_init(&rwlock, NULL);
     GET_TIME(start);
-    pthread_create(&threads[0], NULL, (void *(*)(void *))Insert, (void *)5);
-    pthread_create(&threads[1], NULL, (void *(*)(void *))Insert, (void *)6);
-    pthread_create(&threads[2], NULL, (void *(*)(void *))Insert, (void *)9);
-    pthread_create(&threads[3], NULL, (void *(*)(void *))Insert, (void *)2);
-    pthread_create(&threads[4], NULL, (void *(*)(void *))Delete, (void *)9);
-    pthread_create(&threads[5], NULL, (void *(*)(void *))Insert, (void *)1);
-    pthread_create(&threads[6], NULL, (void *(*)(void *))Member, (void *)8);
+    
+    pthread_create(&threads[0], NULL, (void *(*)(void *))Insert, (void *)&arr[0]);
+    pthread_create(&threads[1], NULL, (void *(*)(void *))Insert, (void *)&arr[1]);
+    pthread_create(&threads[2], NULL, (void *(*)(void *))Insert, (void *)&arr[2]);
+    pthread_create(&threads[3], NULL, (void *(*)(void *))Insert, (void *)&arr[3]);
+    pthread_create(&threads[4], NULL, (void *(*)(void *))Member, (void *)&arr[4]);
 
     for(int i = 0; i < MAX_THREAD ; i++)  {
         pthread_join(threads[i], NULL); //Espera a que termine el hilo 1 , segundo argumento lo que retorna

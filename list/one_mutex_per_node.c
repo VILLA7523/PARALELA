@@ -1,8 +1,9 @@
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "timer.h"
 
-#define MAX_THREAD 9
+#define MAX_THREAD 4
 
 struct list_node {
     int data;
@@ -173,17 +174,32 @@ void sprint() {
 
 int main() {
     double start, finish;
-    pthread_t threads[MAX_THREAD]; 
+    pthread_t* threads = (pthread_t*)malloc(MAX_THREAD * sizeof(pthread_t));
 
-    pthread_mutex_init(&head_p_mutex, NULL);
+    srand(time(NULL));
+    int size = 100000;
+    int *array = (int *)malloc(size * sizeof(int));
+    for (int i = 0; i < size; ++i) array[i] = rand();
+
+    int ins = 0.05 * size;
+    int mem = 99.9 * size;
+    int del = 0.05 * size;
+    
+    int j = 0;
+
     GET_TIME(start);
-    pthread_create(&threads[0], NULL, (void *(*)(void *))Insert, (void *)5);
-    pthread_create(&threads[1], NULL, (void *(*)(void *))Insert, (void *)6);
-    pthread_create(&threads[2], NULL, (void *(*)(void *))Insert, (void *)9);
-    pthread_create(&threads[3], NULL, (void *(*)(void *))Insert, (void *)2);
-    pthread_create(&threads[4], NULL, (void *(*)(void *))Delete, (void *)9);
-    pthread_create(&threads[5], NULL, (void *(*)(void *))Insert, (void *)1);
-    pthread_create(&threads[6], NULL, (void *(*)(void *))Member, (void *)8);
+    for( ; j < ins ; j++) {
+        printf("%d\n" , j%MAX_THREAD);
+        pthread_create(&threads[j%MAX_THREAD], NULL, (void *(*)(void *))Insert, (void *)(&array[j]));
+    }
+
+    // for( ; j < mem + ins; j++) {
+    //     pthread_create(&threads[j%MAX_THREAD], NULL, (void *(*)(void *))Member, (void *)(&array[j]));
+    // }
+
+    // for( ; j < size; j++) {
+    //     pthread_create(&threads[j%MAX_THREAD], NULL, (void *(*)(void *))Delete, (void *)(&array[j]));
+    // }
 
     for(int i = 0; i < MAX_THREAD ; i++)  {
         pthread_join(threads[i], NULL); //Espera a que termine el hilo 1 , segundo argumento lo que retorna
@@ -191,6 +207,6 @@ int main() {
 
     GET_TIME(finish);
     printf("Elapsed time = %e seconds\n", finish - start);
-
+    free(array);
     sprint();
 }
